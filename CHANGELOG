@@ -1,4 +1,4 @@
-McJar Font Getter changelog:
+Minecraft Font Extractor changelog:
 
 1.0:
 Initial release.
@@ -23,3 +23,10 @@ Now supports scaled glyphs.
 1.5
 Left-aligned font file now is called "Mojangles left-aligned".
 Pack version 6 no longer outputs "Unknown future version" into console.
+
+2.0:
+Changed name from 'McJar Font Getter' to 'Minecraft Font Extractor'.
+Rewrote the whole thing. Not much left from the original code.
+Updated libraries (JSZip.js, opentype.js, UPNG.js).
+Wrote a new site layout.
+Added a favicon.

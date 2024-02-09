@@ -1,0 +1,309 @@
+@font-face {
+    font-family: 'Lato';
+    src: url('../fonts/Lato-Light.ttf');
+}
+
+
+/* Color scheme generated using https://www.realtimecolors.com */
+
+:root {
+    --primary-50: #030217;
+    --primary-100: #06052e;
+    --primary-200: #0c0a5c;
+    --primary-300: #130f8a;
+    --primary-400: #1913b9;
+    --primary-500: #1f18e7;
+    --primary-600: #4c46ec;
+    --primary-700: #7975f0;
+    --primary-800: #a5a3f5;
+    --primary-900: #d2d1fa;
+    --primary-950: #e9e8fd;
+
+    --secondary-50: #0d0217;
+    --secondary-100: #19042f;
+    --secondary-200: #33085e;
+    --secondary-300: #4c0c8d;
+    --secondary-400: #6610bc;
+    --secondary-500: #7f14eb;
+    --secondary-600: #9943ef;
+    --secondary-700: #b272f3;
+    --secondary-800: #cca1f7;
+    --secondary-900: #e5d0fb;
+    --secondary-950: #f2e8fd;
+
+    --text: #e4e3fc;
+    --background: #04031c;
+    --primary: #868af3;
+    --secondary: #4f0d91;
+    --accent: #a62deb;
+}
+
+/** General **/
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    color: currentColor;
+}
+
+svg:where(.svg-icon) {
+    display: inline-block;
+
+    height: 1em;
+    width: 1em;
+
+    fill: currentColor;
+}
+
+
+
+html, body {
+    height: 100%;
+    /* width: 100%; */
+    /* overflow-y: auto; */
+
+    background-color: var(--background);
+
+    color: var(--text);
+    font-family: 'Lato', sans-serif;
+
+    /* display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap; */
+}
+
+body {
+    overflow-y: auto;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+main {
+    margin-bottom: 20vh;
+    padding: 1rem;
+
+    width: max-content;
+    max-width: calc(100% - 2rem);
+    
+    background: linear-gradient(150deg, var(--background), var(--secondary-200));
+    box-shadow: 2px 2px 5px var(--secondary-200);
+    border-radius: 5px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    row-gap: 3rem;
+}
+
+@media (max-height: 30.375rem) {
+    body {
+        align-items: flex-start;
+    }
+
+    main {
+        margin: 0;
+    }
+}
+
+
+main > * {
+    width: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/** Header **/
+header > h1 {
+    text-align: center;
+    font-size: 2rem;
+}
+
+/** Content **/
+article > .wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    row-gap: 1.5rem;
+}
+
+
+.wrapper label,
+.wrapper button {
+    padding: 0.3rem;
+
+    background-color: var(--primary);
+    border-radius: 5px;
+
+    color: var(--background);
+    font-weight: bold;
+    font-size: 1.15rem;
+}
+
+.wrapper label:hover,
+.wrapper button:not(:disabled):hover {
+    cursor: pointer;
+
+    background-color: var(--primary-700);
+}
+
+label.jar-file,
+.wrapper > button {
+    display: flex;
+    align-items: center;
+    column-gap: 0.8rem;
+}
+
+/* File input */
+label.jar-file {
+    max-width: 25rem;
+}
+
+label.jar-file > span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+label.jar-file > svg {
+    font-size: 2rem;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+/* Style checkbox */
+.wrapper > span {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+label.style {
+    height: 2.3em;
+    width: max-content;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    column-gap: 0.6rem;
+
+    user-select: none;
+
+    overflow: hidden;
+}
+
+label.style > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+label.style > div > span {
+    transition: 100ms ease-in-out transform, 200ms ease-in-out visibility;
+    transform: translateY(0.6em);
+}
+
+label.style > input {
+    display: none;
+}
+
+/* Normal style */
+label.style:not(:has(input:checked)) > div > .bold {
+    transform: translateY(2em);
+    visibility: hidden;
+}
+
+/* Bold style */
+label.style:has(input:checked) > div > .normal {
+    transform: translateY(-2em);
+    visibility: hidden;
+}
+
+label.style:has(input:checked) > div > .bold {
+    transform: translateY(-0.6em);
+}
+
+
+/* Extract button */
+.wrapper > button {
+    padding: 0.5rem 0.8rem;
+
+    background-color: var(--primary-600);
+    border: none;
+
+    font-family: inherit;
+}
+
+.wrapper > button:disabled {
+    color: color-mix(in srgb, var(--text), var(--background));
+    background-color: color-mix(in srgb, var(--primary-600), var(--primary-50) 50%);
+}
+
+.wrapper > button > svg {
+    font-size: 1.7rem;
+
+    transition: 300ms ease-in-out transform;
+}
+
+.wrapper > button:not(:disabled):hover {
+    background-color: color-mix(in srgb, var(--primary-600), var(--secondary-600) 20%);
+}
+
+.wrapper > button:not(:disabled):hover > svg {
+    transform: rotateZ(270deg);
+}
+
+.wrapper > button.working > svg {
+    animation: working 1.5s infinite linear;
+}
+
+@keyframes working {
+    from {
+        transform: rotateZ(270deg);
+    }
+    to {
+        transform: rotateZ(630deg);
+    }
+}
+
+
+
+/** Footer **/
+footer > .github-link {
+    width: 1em;
+    height: 1em;
+
+    border-radius: 50%;
+    
+    overflow: hidden;
+
+    font-size: 3rem;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+footer > .github-link:hover {
+    color: var(--background);
+    /* Background gradient because there was a pixeled outline, that I couldn't get rid of */
+    background: radial-gradient(circle, var(--text) 65%, var(--background) 66%);
+}
