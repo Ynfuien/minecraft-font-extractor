@@ -9,7 +9,10 @@ Extracts the "Mojangles" font from a Minecraft .jar file.
 # Media
 ![main page](https://i.imgur.com/9tkELoS.png)
 
-## Used libraries
+# Used libraries
 - [opentype.js](https://github.com/opentypejs/opentype.js)
 - [JSZip](https://github.com/Stuk/jszip)
 - [UPNG.js](https://github.com/photopea/UPNG.js).
+
+# License
+This project uses [MIT](https://github.com/Ynfuien/minecraft-font-extractor/blob/master/LICENSE) license.
