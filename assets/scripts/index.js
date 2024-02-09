@@ -27,7 +27,27 @@
  *          height: number
  *      }
  * }} ImageToGlyphData
+ * 
+ * @typedef {{
+ *      name: string,
+ *      file: string
+ * }} Font
  */
+
+const fonts = {
+    mojangles: {
+        name: "Mojangles",
+        file: "default.json"
+    },
+    illageralt: {
+        name: "Illageral",
+        file: "illageralt.json"
+    },
+    sga: {
+        name: "Standard Galactic Alphabet",
+        file: "alt.json"
+    }
+};
 
 (async function() {
     //// The whole UI stuff
@@ -41,20 +61,24 @@
 
     const styleLabel = document.querySelector("label.style");
     const styleCheckbox = styleLabel.querySelector("input");
+    styleCheckbox.value = 0;
+
+    const fontLabel = document.querySelector("label.font");
+    const fontCheckbox = fontLabel.querySelector("input");
+    fontCheckbox.value = 0;
 
     jarFileLabel.addEventListener("keypress", (event) => {
         if (event.key !== "Enter") return;
         
         jarFileInput.click();
-    })
+    });
     
     jarFileInput.addEventListener("change", async (event) => {
         const file = jarFileInput.files[0];
 
-        jarFileLabelText.innerText = file.name;
         if (!file.name.endsWith(".jar")) {
             event.preventDefault();
-            // jarFileLabelText.innerText = defaultJarFileLabelText;
+            jarFileLabelText.innerText = defaultJarFileLabelText;
             disableButton();
 
             setTimeout(() => {
@@ -67,18 +91,50 @@
         enableButton();
     });
 
+    // Style checkbox
     styleLabel.addEventListener("keypress", (event) => {
         if (event.key !== "Enter") return;
         
-        styleCheckbox.checked = !styleCheckbox.checked;
-    })
+        changeCheckboxIndex(styleLabel, styleCheckbox);
+    });
 
+    styleLabel.addEventListener("click", (event) => {
+        event.preventDefault();
+        
+        changeCheckboxIndex(styleLabel, styleCheckbox);
+    });
+
+    // Font checkbox
+    fontLabel.addEventListener("keypress", (event) => {
+        if (event.key !== "Enter") return;
+        
+        changeCheckboxIndex(fontLabel, fontCheckbox);
+    });
+
+    fontLabel.addEventListener("click", (event) => {
+        event.preventDefault();
+        changeCheckboxIndex(fontLabel, fontCheckbox);
+    });
+
+    function changeCheckboxIndex(label, checkbox) {
+        let {value} = checkbox;
+        value++;
+        const items = label.querySelector("div").childElementCount;
+        if (value > items - 1) value = 0;
+        
+        checkbox.value = value;
+        label.style.setProperty("--index", value);
+    }
+
+    // Extract button
     extractButton.addEventListener("click", async () => {
         const file = jarFileInput.files[0];
         if (!file) return alert("You need to choose a .jar file!");
 
         extractButton.classList.add("working");
-        await extractFont(file, styleCheckbox.checked);
+        const font = Object.values(fonts)[fontCheckbox.value];
+        console.log({font, value: parseInt(styleCheckbox.value)});
+        await extractFont(file, font, parseInt(styleCheckbox.value));
         extractButton.classList.remove("working");
     });
 
@@ -97,10 +153,11 @@
 
 /**
  * @param {File} jarFile
+ * @param {Font} font
  * @param {boolean} bold
  * @param {number} multiplier
  */
-async function extractFont(jarFile, bold = false, multiplier = 2) {
+async function extractFont(jarFile, font, bold = false, multiplier = 2) {
     console.log("Unzipping jar");
 
     // Reading and loading jar file
@@ -109,11 +166,24 @@ async function extractFont(jarFile, bold = false, multiplier = 2) {
     jarReader.addEventListener("load", async () => {
         const jar = await JSZip.loadAsync(jarReader.result);
 
+        const packVersion = await getPackVersion(jar);
+        // MC version lower than 1.13
+        if (packVersion < 4) {
+            alert("Unsupported Minecraft version!");
+            return;
+        }
+
+        // MC version lower than 1.18, Illageralt isn't defined
+        if (font === fonts.illageralt && packVersion < 8) {
+            alert("Illageralt font is available only in 1.18+ jars!");
+            return;
+        }
+
         // Providers are defined in assets/minecraft/font/*.json files.
         // They contain a char list, some numbers, and point to the png files.
-        const providers = await getProviders(jar);
+        const providers = await getProviders(jar, font);
         if (!providers) {
-            alert("Unsupported Minecraft version!");
+            alert("Something is wrong with the .jar file!");
             return;
         }
         console.log(`Got ${providers.length} provider(s)`);
@@ -135,7 +205,7 @@ async function extractFont(jarFile, bold = false, multiplier = 2) {
         // Multiplier is here, and by default set to 2, because without it,
         // these values were too low for the font to work.
         const options = {
-            familyName: "Mojangles",
+            familyName: font.name,
             styleName: bold ? "Bold" : "Normal",
             // It's like a resolution of the font, I guess?
             // With it being set to 9, like mincerafter42 did, Windows Font Viewer
@@ -161,8 +231,8 @@ async function extractFont(jarFile, bold = false, multiplier = 2) {
         };
 
         // console.log(options);
-        const font = new opentype.Font(options);
-        font.download();
+        const otf = new opentype.Font(options);
+        otf.download();
 
         jarReader.abort();
     });
@@ -195,18 +265,16 @@ function getNotDefGlyph(multiplier) {
 }
 
 /**
+ * @param {JSZip} jar
+ * @param {Font} font
  * @returns {Provider[] | null}
  */
-async function getProviders(jar) {
-    const packVersion = await getPackVersion(jar);
-    // MC version lower than 1.13
-    if (packVersion < 4) return null;
-    
+async function getProviders(jar, font) {
     const mainPath = "assets/minecraft";
 
-    const fontDefault = jar.file(`${mainPath}/font/default.json`);
+    const fontDefault = jar.file(`${mainPath}/font/${font.file}`);
     if (!fontDefault) {
-        console.log("File 'font/default.json' is missing!");
+        console.log(`File 'font/${font.file}' is missing!`);
         return null;
     }
 
@@ -230,16 +298,16 @@ async function getProviders(jar) {
 
             /** @type {{ providers: Provider[] }} */
             const referenceJson = await JSON.parse(await file.async("string"));
-            // We only want a bitmap provider.
+            // We only want a bitmap (and space) provider.
             // And yes, if there would be a reference to a reference, this will skip it.
             // Well too bad, it's not in the latest version (1.20.4), and I don't suppose
             // it will happen soon, so it's a problem for the unknown future.
-            const referenceProviders = referenceJson.providers.filter(prov => prov.type === "bitmap");
+            const referenceProviders = referenceJson.providers.filter(prov => prov.type === "bitmap" || prov.type === "space");
             providers.push(...referenceProviders);
             continue;
         }
 
-        if (provider.type !== "bitmap") continue;
+        if (provider.type !== "bitmap" && provider.type !== "space") continue;
         providers.push(provider);
     }
 
@@ -280,6 +348,30 @@ async function getPackVersion(jar) {
  * @returns {Object.<string, opentype.Glyph>}
  */
 async function getGlyphsFromProvider(jar, provider, bold, multiplier) {
+    const glyphs = {};
+    // 'space' provider type, mainly for Illageralt and SGA fonts,
+    // since they don't have a space in the pngs
+    if (provider.type === "space") {
+        console.log(`Provider '${provider.type}'..`);
+
+        const {advances} = provider;
+        for (const char in advances) {
+            const width = advances[char];
+            const charCode = char.charCodeAt(0);
+
+            const glyph = new opentype.Glyph({
+                name: charCode.toString(16),
+                unicode: charCode,
+                advanceWidth: width * multiplier,
+                path: new opentype.Path()
+            });
+
+            glyphs[charCode] = glyph;
+        }
+        
+        return glyphs;
+    }
+
     console.log(`Provider '${provider.file}'..`);
 
     // Reading image file
@@ -292,8 +384,6 @@ async function getGlyphsFromProvider(jar, provider, bold, multiplier) {
     const rgba8 = UPNG.toRGBA8(image)[0];
     const imageMap = new DataView(rgba8);
     
-    const glyphs = {};
-
     const {ascent} = provider;
     const charRows = provider.chars.length;
     const charColumns = provider.chars[0].length;

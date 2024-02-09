@@ -30,3 +30,7 @@ Rewrote the whole thing. Not much left from the original code.
 Updated libraries (JSZip.js, opentype.js, UPNG.js).
 Wrote a new site layout.
 Added a favicon.
+
+2.1:
+Added ability to also extract the Illageralt and Standard Galactic Alphabet fonts.
+Added version number on the page.
